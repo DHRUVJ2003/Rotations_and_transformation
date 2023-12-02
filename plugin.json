@@ -1,0 +1,12 @@
+{
+  "author": ["Geoffrey Hutchison", "Dhruv J"],
+  "version": 2.0,
+  "url": "https://github.com/openchemistry/avogadro-commands",
+  "name": "avogadro-commands",
+  "description": "Scripts for rotation and reflection",
+  "type": "commands",
+  "commands": [
+    { "name": "rotate", "command": "rotation_plane.py" },
+    { "name": "reflect", "command": "reflect_plane.py" }
+  ]
+}
