@@ -8,7 +8,7 @@
 import argparse
 import json
 import sys
-from orient import GeometryXYZ,CentroidTranslate,OperationList,ShiftedOperation,NormalRotate
+from orient import GeometryXYZ,CentroidTranslate,OperationList,ShiftedOperation,PlaneReflect
 import numpy as np
 # Some globals:
 debug = True
@@ -136,75 +136,50 @@ name = {
 
 def getOptions():
     userOptions = {}
-
-    userOptions['angle'] = {}
-    userOptions['angle']['label'] = 'Angle of Rotation'
-    userOptions['angle']['type'] = 'float'
-    userOptions['angle']['default'] = 0
-
-
-
     opts = {'userOptions': userOptions}
-
     return opts
 
 
-def Rotate(opts,mol):
-    angle=float(opts['angle'])
+def Reflect(mol):
     atomic_numbers = mol['atoms']['elements']['number']
     selected_atoms  = []
-    selected_coordinates=[]
     atom_names=[]
     
     for i in range(len(atomic_numbers)):
         if mol['atoms']['selected'][i]:
             selected_atoms.append(i)
-            atom_names.append(name.get(atomic_numbers[i]))
+        atom_names.append(name.get(atomic_numbers[i]))
 
-    coords = mol['atoms']['coords']['3d']
-    j=0
-    for i in range(0, len(coords), 3):
-        if j in selected_atoms:
-            selected_coordinates.append(coords[i])
-            selected_coordinates.append(coords[i+1])
-            selected_coordinates.append(coords[i+2])
-        j = j+1
 
     # print(selected_atoms)
     # print(selected_coordinates)
     # print(atom_names)
     operation_list = OperationList()
-    coordinates_array = np.array(selected_coordinates).reshape(-1, 3)
+    coordinates_array = np.array(mol['atoms']['coords']['3d']).reshape(-1, 3)
     # print(coordinates_array)
-    selected_geometry = GeometryXYZ(
+    geometry = GeometryXYZ(
     names=atom_names,
     coordinates=coordinates_array,
     comment="Best-Fit Selection"
 )
-    selected=[]
-    for k in range(len(selected_atoms)):
-        selected.append(k)
 
-    translate_to_origin = CentroidTranslate(selected, fac=-1.0)
+    translate_to_origin = CentroidTranslate(selected_atoms, fac=-1.0)
     operation_list.append(translate_to_origin)
 
-    rotate = NormalRotate(selected,angle)
-    operation_list.append(rotate)
+    reflect = PlaneReflect(selected_atoms)
+    operation_list.append(reflect)
     
-    shift = ShiftedOperation(translate_to_origin, rotate)
+    shift = ShiftedOperation(translate_to_origin, reflect)
     operation_list.append(shift)
 
     # print(selected_geometry.coordinates)
     for operation in operation_list:
-        operation(selected_geometry.coordinates)
-
-    # print(selected_geometry.coordinates)
-
-    for i, idx in enumerate(selected_atoms):
-        start_idx = idx * 3
-        end_idx = start_idx + 3
-        mol['atoms']['coords']['3d'][start_idx:end_idx] = selected_geometry.coordinates[i]
-
+        operation(geometry.coordinates)
+    # Print the modified molecule
+    # print(geometry.coordinates)
+    mol['atoms']['coords']['3d']=[]
+    for i in geometry.coordinates:
+        mol['atoms']['coords']['3d'].extend(i)
     return mol
 
 
@@ -217,12 +192,12 @@ def runCommand():
 
     # Prepare the result
     result = {}
-    result['cjson'] = Rotate(opts,opts['cjson'])
+    result['cjson'] = Reflect(opts['cjson'])
     return result
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('Rotate through bestfit plane')
+    parser = argparse.ArgumentParser('Reflect across the bestfit plane')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--print-options', action='store_true')
     parser.add_argument('--run-command', action='store_true')
@@ -234,7 +209,7 @@ if __name__ == "__main__":
     debug = args['debug']
 
     if args['display_name']:
-        print("Rotate through bestfit plane")
+        print("Reflect across the bestfit plane")
     if args['menu_path']:
         print("&Build")
     if args['print_options']:
