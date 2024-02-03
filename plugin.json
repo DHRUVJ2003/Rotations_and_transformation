@@ -6,7 +6,13 @@
   "description": "Scripts for rotation and reflection",
   "type": "commands",
   "commands": [
-    { "name": "rotate", "command": "rotation_plane.py" },
-    { "name": "reflect", "command": "reflect_plane.py" }
+    { "name": "rotate-about-plane", "command": "rotation_plane.py"},
+    { "name": "rotate-about-axis", "command": "rotation_cartesian_axis.py"},
+    { "name": "rotate-about-vector", "command": "rotation_vector.py"},
+    { "name": "rotate-about-axis-using-atoms", "command": "rotation_axis_by_atoms.py"},
+    { "name": "reflect-across-plane-using-selected-atoms", "command": "reflect_plane.py"},
+    { "name": "reflect-across-cartesian-plane", "command": "reflect_cartesian_plane.py"},
+    { "name": "reflect-across-bond", "command": "reflect_bond_vector.py"},
+    { "name": "reflect-across-normal", "command": "reflect_normal_vector.py"}  
   ]
 }

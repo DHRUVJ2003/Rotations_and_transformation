@@ -56,15 +56,15 @@ def Reflect(mol):
 )
 
     translate_to_origin = CentroidTranslate(selected_atoms, fac=-1.0)
-    operation_list.append(translate_to_origin)
+    # operation_list.append(translate_to_origin)
 
     reflect = PlaneReflect(selected_atoms)
-    operation_list.append(reflect)
+    # operation_list.append(reflect)
     
     shift = ShiftedOperation(translate_to_origin, reflect)
     operation_list.append(shift)
 
-    # print(selected_geometry.coordinates)
+    # print(geometry.coordinates)
     for operation in operation_list:
         operation(geometry.coordinates)
     # Print the modified molecule

@@ -8,7 +8,7 @@
 import argparse
 import json
 import sys
-from orient import GeometryXYZ,CentroidTranslate,OperationList,ShiftedOperation,NormalRotate
+from orient import GeometryXYZ,CentroidTranslate,OperationList,ShiftedOperation,BondReflect
 import numpy as np
 # Some globals:
 debug = True
@@ -27,21 +27,11 @@ name = {1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F
 
 def getOptions():
     userOptions = {}
-
-    userOptions['angle'] = {}
-    userOptions['angle']['label'] = 'Angle of Rotation'
-    userOptions['angle']['type'] = 'float'
-    userOptions['angle']['default'] = 0
-
-
-
     opts = {'userOptions': userOptions}
-
     return opts
 
 
 def Rotate(opts,mol):
-    angle=float(opts['angle'])
     atomic_numbers = mol['atoms']['elements']['number']
     selected_atoms  = []
     selected_coordinates=[]
@@ -60,8 +50,9 @@ def Rotate(opts,mol):
             selected_coordinates.append(coords[i+1])
             selected_coordinates.append(coords[i+2])
         # j = j+1
+
     # print(selected_atoms)
-    # print(selected_coordinates)
+    print(selected_coordinates)
     # print(atom_names)
     operation_list = OperationList()
     coordinates_array = np.array(selected_coordinates).reshape(-1, 3)
@@ -69,19 +60,18 @@ def Rotate(opts,mol):
     selected_geometry = GeometryXYZ(
     names=atom_names,
     coordinates=coordinates_array,
-    comment="Best-Fit Selection"
 )
     # selected=[]
-    # for k in range(len(selected_atoms)):
+    # for k in selected_atoms:
     #     selected.append(k)
-
-    translate_to_origin = CentroidTranslate(selected_atoms, fac=-1.0)
+    print(selected_atoms)
+    translate_to_origin = CentroidTranslate([selected_atoms[0],selected_atoms[1]], fac=-1.0)
     # operation_list.append(translate_to_origin)
 
-    rotate = NormalRotate(selected_atoms,angle)
-    # operation_list.append(rotate)
+    ref = BondReflect(selected_atoms[0],selected_atoms[1])
+    # operation_list.append(ref)
     
-    shift = ShiftedOperation(translate_to_origin, rotate)
+    shift = ShiftedOperation(translate_to_origin, ref)
     operation_list.append(shift)
 
     # print(selected_geometry.coordinates)
@@ -90,10 +80,6 @@ def Rotate(opts,mol):
 
     # print(selected_geometry.coordinates)
 
-    # for i, idx in enumerate(selected_atoms):
-    #     start_idx = idx * 3
-    #     end_idx = start_idx + 3
-    #     mol['atoms']['coords']['3d'][start_idx:end_idx] = selected_geometry.coordinates[i]
     i=0
     for row in selected_geometry.coordinates:
         for element in row:
@@ -117,7 +103,7 @@ def runCommand():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('Rotate through bestfit plane')
+    parser = argparse.ArgumentParser('Reflect across bond')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--print-options', action='store_true')
     parser.add_argument('--run-command', action='store_true')
@@ -129,7 +115,7 @@ if __name__ == "__main__":
     debug = args['debug']
 
     if args['display_name']:
-        print("Rotate through bestfit plane")
+        print("Reflect across bond")
     if args['menu_path']:
         print("&Build")
     if args['print_options']:

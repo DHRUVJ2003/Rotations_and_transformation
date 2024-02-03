@@ -8,7 +8,7 @@
 import argparse
 import json
 import sys
-from orient import GeometryXYZ,CentroidTranslate,OperationList,ShiftedOperation,NormalRotate
+from orient import GeometryXYZ,CentroidTranslate,OperationList,ShiftedOperation,AtomPairRotate
 import numpy as np
 # Some globals:
 debug = True
@@ -60,6 +60,7 @@ def Rotate(opts,mol):
             selected_coordinates.append(coords[i+1])
             selected_coordinates.append(coords[i+2])
         # j = j+1
+
     # print(selected_atoms)
     # print(selected_coordinates)
     # print(atom_names)
@@ -69,16 +70,15 @@ def Rotate(opts,mol):
     selected_geometry = GeometryXYZ(
     names=atom_names,
     coordinates=coordinates_array,
-    comment="Best-Fit Selection"
 )
     # selected=[]
     # for k in range(len(selected_atoms)):
     #     selected.append(k)
-
-    translate_to_origin = CentroidTranslate(selected_atoms, fac=-1.0)
+    print(selected_atoms)
+    translate_to_origin = CentroidTranslate([selected_atoms[0],selected_atoms[1]], fac=-1.0)
     # operation_list.append(translate_to_origin)
 
-    rotate = NormalRotate(selected_atoms,angle)
+    rotate = AtomPairRotate(selected_atoms[0],selected_atoms[1],angle)
     # operation_list.append(rotate)
     
     shift = ShiftedOperation(translate_to_origin, rotate)
@@ -117,7 +117,7 @@ def runCommand():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('Rotate through bestfit plane')
+    parser = argparse.ArgumentParser('Rotate through axis defined by selected pair of atoms')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--print-options', action='store_true')
     parser.add_argument('--run-command', action='store_true')
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     debug = args['debug']
 
     if args['display_name']:
-        print("Rotate through bestfit plane")
+        print("Rotate through axis defined by selected pair of atoms")
     if args['menu_path']:
         print("&Build")
     if args['print_options']:
